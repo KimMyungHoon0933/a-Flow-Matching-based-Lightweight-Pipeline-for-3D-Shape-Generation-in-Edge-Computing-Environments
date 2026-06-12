@@ -1,0 +1,10 @@
+_target_: cod.solvers.stage2_solver.VAEStage2Solver
+
+autoencoder_checkpoint_path: null
+
+lr: 1e-4
+eval_chunk_size: 250000
+
+coeff_feat: 1
+coeff_kl: 1e-3
+coeff_recon: 1

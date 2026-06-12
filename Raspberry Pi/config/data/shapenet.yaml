@@ -1,0 +1,18 @@
+_target_: cod.data.shapenet.ShapeNetOccupancyDataModule
+root_dir: datasets2/shapenet
+
+batch_size: 32
+eval_batch_size: 1
+num_workers: 8
+prefetch_factor: 2
+
+raw_root_dir: datasets2/shapenet_vecset
+categories:
+  - '03001627'
+num_query_points: 4096
+pc_size: 2048
+chunk_size: 5000
+oversample_ratio: 3
+use_queries: true
+use_full_surface: false
+repeat: 16

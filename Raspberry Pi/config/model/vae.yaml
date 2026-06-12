@@ -1,0 +1,4 @@
+_base_: ae
+_target_: cod.models.vae.CompactLatentVAE
+latent_dim: 32
+num_latent_layers: 12

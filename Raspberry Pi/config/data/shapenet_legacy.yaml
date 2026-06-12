@@ -1,0 +1,13 @@
+_target_: cod.data.shapenet_legacy.ShapeNetOccupancyDataModule
+
+batch_size: 32
+eval_batch_size: 1
+num_workers: 8
+
+raw_root_dir: datasets/raw_shapenet_occ
+root_dir: datasets/shapenet
+
+dataset_params:
+  chunk_size: 5000
+  num_query_points: 4096
+  oversample_ratio: 3

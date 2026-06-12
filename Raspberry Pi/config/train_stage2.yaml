@@ -1,0 +1,12 @@
+_base_: _train_base
+trainer:
+  accumulate_grad_batches: 1
+data:
+  _base_: data/shapenet
+  batch_size: 128
+  num_workers: 16
+model:
+  _base_: model/vae
+solver:
+  _base_: solver/ae_stage2
+  autoencoder_checkpoint_path: path/to/the/checkpoint/from/stage1.ckpt

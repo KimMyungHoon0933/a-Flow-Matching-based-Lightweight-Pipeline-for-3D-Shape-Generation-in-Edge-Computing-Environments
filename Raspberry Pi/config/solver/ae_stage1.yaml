@@ -1,0 +1,7 @@
+_target_: cod.solvers.ae_solver.AutoencoderSolver
+lr: 1e-4
+use_cosine_annealing: false
+eval_chunk_size: 250000
+
+coeff_init: 1
+coeff_uncertainty: 0.01

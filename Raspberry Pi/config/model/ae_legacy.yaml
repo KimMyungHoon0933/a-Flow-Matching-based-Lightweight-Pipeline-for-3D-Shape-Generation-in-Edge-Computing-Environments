@@ -1,0 +1,38 @@
+_target_: cod.models.ae_legacy.ae.CompactLatentAutoEncoder
+
+output_dim: 1
+num_latents: 32
+embed_dim: 512
+query_dim: 32
+use_latent_fps: true
+use_init_out: true
+
+encoder_params:
+  encoder_blocks:
+    - [ 512, 3 ]
+    - [ 512, 3 ]
+    - [ 512, 3 ]
+    - [ 512, 3 ]
+  use_latent_attn: true
+  point_update_mode: z
+  num_heads: 8
+  mlp_ratio: 4
+  dropout: 0.1
+
+decoder_params:
+  output_resolution: 128
+  output_patch_size: 8
+  num_prune_layers: 1
+  num_layers: 12
+  keep_ratio: 0.25
+  use_input_ln: true
+  num_register: 1
+  use_mask_token: true
+  num_heads: 8
+  mlp_ratio: 2
+  dropout: 0.1
+  uncertainty_activation: sigmoid
+  uncertainty_mode: mult
+  num_merged_tokens: 8
+  detach_uncertainty: false
+  use_prune_ffn: true
