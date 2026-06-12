@@ -17,13 +17,6 @@ from timm.models.layers import DropPath
 import numpy as np
 
 
-def zero_module(module):
-    """Zero out the parameters of a module and return it."""
-    for p in module.parameters():
-        p.detach().zero_()
-    return module
-
-
 # ─────────────────────────────────────────────────────────
 # 유틸리티 클래스들 (원본 유지)
 # ─────────────────────────────────────────────────────────
@@ -233,11 +226,12 @@ class FlowModel(nn.Module):
             t_channels=256,
             n_heads=n_heads,
             d_head=d_head,
-            n_latents=n_latents,
+            n_latents=n_latents,  # [추가] pos_emb 크기 전달
             depth=depth
         )
 
     def forward(self, x, t, class_labels=None, **model_kwargs):
+        # 카테고리 임베딩 처리
         if class_labels.dtype == torch.float32:
             cond_emb = class_labels
         else:
@@ -245,9 +239,10 @@ class FlowModel(nn.Module):
 
         x = x.to(torch.float32)
 
-        # PositionalEmbedding은 max_positions=10000 기준 설계 → t ∈ [0,1]을 1000배 스케일링
+        # PositionalEmbedding의 max_positions=10000 기준 설계 → t ∈ [0,1]을 1000배 스케일링
         t_scaled = t.to(torch.float32).reshape(-1) * 1000.0
 
+        # Velocity 예측
         velocity = self.model(x, t_scaled, cond=cond_emb, **model_kwargs)
 
         return velocity

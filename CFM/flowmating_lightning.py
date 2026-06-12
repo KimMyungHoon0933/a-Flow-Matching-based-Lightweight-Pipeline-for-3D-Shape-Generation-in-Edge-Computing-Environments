@@ -12,8 +12,6 @@ import torch
 import torch.nn.functional as F
 import lightning.pytorch as pl
 from omegaconf import OmegaConf
-import numpy as np
-import ot
 
 from cod.models.vae.vae import CompactLatentVAE
 
@@ -23,41 +21,6 @@ from CFM.flow_set.models_class_cond import cod_m32_d32_flow
 # Meta Flow Matching 라이브러리 임포트
 from flow_matching.path.scheduler.scheduler import CondOTScheduler
 from flow_matching.path.affine import CondOTProbPath
-
-
-def minibatch_ot_coupling(x_0: torch.Tensor, x_1: torch.Tensor) -> torch.Tensor:
-    """
-    미니배치 OT coupling: x_0를 x_1에 최적 매칭되도록 재정렬.
-    각 x_1[j]에 대해 transport cost(squared L2)를 최소화하는 x_0[i]를 할당.
-
-    Args:
-        x_0: [B, n_latents, channels] 노이즈 샘플
-        x_1: [B, n_latents, channels] VAE 잠재 벡터
-    Returns:
-        x_0_matched: [B, n_latents, channels] 재정렬된 x_0
-    """
-    B = x_0.shape[0]
-    device = x_0.device
-
-    # CPU numpy로 변환 (POT 라이브러리 요구사항)
-    x_0_flat = x_0.reshape(B, -1).float().detach().cpu()
-    x_1_flat = x_1.reshape(B, -1).float().detach().cpu()
-
-    # 균등 가중치
-    a = np.ones(B) / B
-    b = np.ones(B) / B
-
-    # Squared L2 cost matrix [B, B]
-    M = torch.cdist(x_0_flat, x_1_flat, p=2).pow(2).numpy()
-
-    # Exact OT transport plan (Earth Mover's Distance)
-    T = ot.emd(a, b, M)  # [B, B], T[i,j] = x_0[i] → x_1[j] 할당량
-
-    # 각 x_1[j]에 대해 가장 많이 할당된 x_0[i]를 선택
-    indices = np.argmax(T, axis=0)  # shape [B]
-    indices_tensor = torch.from_numpy(indices).long().to(device)
-
-    return x_0[indices_tensor]
 
 
 class FlowMatchingLightning(pl.LightningModule):
@@ -133,13 +96,10 @@ class FlowMatchingLightning(pl.LightningModule):
         # 1. 순수 노이즈 생성
         x_0 = torch.randn_like(x_1)
 
-        # 2. Minibatch OT coupling: x_0를 x_1에 최적 매칭
-        x_0 = minibatch_ot_coupling(x_0, x_1)
-
-        # 3. 시간 스텝 무작위 샘플링 (0.0 ~ 1.0)
+        # 2. 시간 스텝 무작위 샘플링 (0.0 ~ 1.0)
         t = torch.rand((x_1.shape[0],), device=x_1.device)
 
-        # 4. OT-CFM 궤적 샘플링
+        # 3. OT-CFM 궤적 샘플링
         path_sample = self.prob_path.sample(x_0=x_0, x_1=x_1, t=t)
 
         with torch.cuda.amp.autocast(enabled=False):
@@ -169,8 +129,6 @@ class FlowMatchingLightning(pl.LightningModule):
         optimizer = torch.optim.AdamW(
             self.flow_model.parameters(),
             lr=self.lr,
-            weight_decay=0.05
+            weight_decay=self.weight_decay
         )
-        from torch.optim.lr_scheduler import CosineAnnealingLR
-        scheduler = CosineAnnealingLR(optimizer, T_max=self.trainer.max_epochs, eta_min=1e-6)
-        return {"optimizer": optimizer, "lr_scheduler": {"scheduler": scheduler, "interval": "epoch"}}
+        return optimizer
