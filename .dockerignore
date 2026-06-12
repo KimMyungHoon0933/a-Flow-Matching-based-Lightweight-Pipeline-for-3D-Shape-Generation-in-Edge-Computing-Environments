@@ -1,0 +1,5 @@
+*
+!/requirements.txt
+!/external/pointops
+/external/pointops/build
+/external/pointops/*.egg-info

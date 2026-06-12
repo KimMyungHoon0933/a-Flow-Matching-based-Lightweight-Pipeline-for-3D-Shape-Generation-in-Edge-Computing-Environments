@@ -1,0 +1,9 @@
+_base_: _train_base
+trainer:
+  accumulate_grad_batches: 2
+data:
+  _base_: data/shapenet_legacy
+model:
+  _base_: model/ae
+solver:
+  _base_: solver/ae_stage1
